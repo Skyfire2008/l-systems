@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"outDir": "bin",
+		"target": "ES2017",
+		"rootDir": "./src/",
+		"module": "none",
+		"jsx": "react",
+		"allowUmdGlobalAccess": true
+	},
+	"compileOnSave": true,
+	"exclude": [
+		"node_modules"
+	]
+}

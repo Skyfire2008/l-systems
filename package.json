@@ -1,0 +1,17 @@
+{
+	"name": "l-systems",
+	"version": "1.0.0",
+	"dependencies": {
+		"react": "18.2",
+		"react-dom": "18.2",
+		"@types/react": "18.2",
+		"@types/react-dom": "18.2",
+		"typescript": "v5.3.3"
+	},
+	"scripts": {
+		"compile": "tsc",
+		"copy": "node scripts/copy.js",
+		"build": "npm run compile && npm run copy",
+		"server": "node scripts/server.js 8080 bin"
+	}
+}
