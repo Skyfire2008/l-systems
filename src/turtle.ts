@@ -5,12 +5,14 @@ namespace lSystem {
 		x: number;
 		y: number;
 		angle: number;
+		dist: number;
 	}
 
 	export class Turtle {
 
-		public dist: number;
-		public delta: number;
+		private dist: number;
+		private delta: number;
+		private distScale: number;
 
 		private scale = 1;
 
@@ -32,6 +34,8 @@ namespace lSystem {
 			this.actions.set("]", this.pop);
 			this.actions.set("+", this.turnLeft);
 			this.actions.set("-", this.turnRight);
+			this.actions.set(">", this.multDist);
+			this.actions.set("<", this.divDist);
 
 			this.calibrationActions = new Map<string, () => void>();
 			this.calibrationActions.set("[", this.push);
@@ -40,6 +44,7 @@ namespace lSystem {
 				this.x = state.x;
 				this.y = state.y;
 				this.angle = state.angle;
+				this.dist = state.dist;
 			});
 			this.calibrationActions.set("+", this.turnLeft);
 			this.calibrationActions.set("-", this.turnRight);
@@ -49,6 +54,8 @@ namespace lSystem {
 			};
 			this.calibrationActions.set("F", nextPos);
 			this.calibrationActions.set("f", nextPos);
+			this.calibrationActions.set(">", this.multDist);
+			this.calibrationActions.set("<", this.divDist);
 		}
 
 		/**
@@ -93,18 +100,25 @@ namespace lSystem {
 
 		/**
 		 * Draw the given sequence of characters onto the given rendering context
-		 * @param seq 	sequence to draw
-		 * @param dist	default move distance
-		 * @param delta	default turn angle
-		 * @param ctx 	rendering context
+		 * @param seq 		sequence to draw
+		 * @param dist		default move distance
+		 * @param delta		default turn angle
+		 * @param distScale move distance scaling factor
+		 * @param ctx 		rendering context
 		 */
-		public draw(seq: string, dist: number, delta: number, ctx: CanvasRenderingContext2D) {
+		public draw(seq: string, dist: number, delta: number, distScale: number, ctx: CanvasRenderingContext2D) {
 			//set the settings
 			this.dist = dist;
 			this.delta = delta;
+			this.distScale = distScale;
 
 			//first calibrate...
 			this.calibrate(seq, ctx.canvas.width, ctx.canvas.width);
+
+			//restore state
+			this.dist = dist;
+			this.delta = delta;
+
 			//then draw normally
 			const seqArray = seq.split("");
 			ctx.beginPath();
@@ -141,6 +155,14 @@ namespace lSystem {
 			ctx.moveTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
 		}
 
+		private multDist(ctx: CanvasRenderingContext2D) {
+			this.dist *= this.distScale;
+		}
+
+		private divDist(ctx: CanvasRenderingContext2D) {
+			this.dist /= this.distScale;
+		}
+
 		/**
 		 * Push the curretn state onto the stack
 		 * @param ctx rendering context
@@ -149,7 +171,8 @@ namespace lSystem {
 			this.stack.push({
 				x: this.x,
 				y: this.y,
-				angle: this.angle
+				angle: this.angle,
+				dist: this.dist
 			});
 		}
 
@@ -162,6 +185,7 @@ namespace lSystem {
 			this.x = state.x;
 			this.y = state.y;
 			this.angle = state.angle;
+			this.dist = state.dist;
 			ctx.moveTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
 		}
 

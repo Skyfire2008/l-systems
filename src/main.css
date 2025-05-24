@@ -1,0 +1,25 @@
+.rule .pred {
+	width: 20px;
+	text-align: right;
+}
+
+.rule .prob {
+	width: 40px;
+}
+
+.rule .odds {
+	width: 100px;
+}
+
+.rule {
+	display: flex;
+	margin: 2px 0px 0px 0px;
+}
+
+.rule * {
+	margin: 0px 5px 0px 0px;
+}
+
+input[type="number"] {
+	text-align: right;
+}

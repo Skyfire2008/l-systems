@@ -4,37 +4,31 @@ namespace ui {
 
 		const [name, setName] = React.useState("");
 		const [axiom, _setAxiom] = React.useState("");
+		const [sequence, setSequence] = React.useState(axiom);
+
 		const setAxiom = (newAxiom: string) => {
-			sequence.current = newAxiom;
+			setSequence(newAxiom);
 			_setAxiom(newAxiom);
 		};
 
-		const [delta, _setDelta] = React.useState(60);
-		const setDelta = (newDelta: number) => {
-			redraw();
-			_setDelta(newDelta);
-		}
-
-		const [dist, _setDist] = React.useState(1);
-		const setDist = (newDist: number) => {
-			redraw();
-			_setDist(newDist);
-		}
+		const [delta, setDelta] = React.useState(60);
+		const [dist, setDist] = React.useState(1);
+		const [distScale, setDistScale] = React.useState(2);
 
 		const [iterations, _setIterations] = React.useState(0);
 		const setIterations = (newIterations: number) => {
+			let newSequence: string;
 			if (newIterations - iterations == 1) {
 				//if iterations were iterated, only rewrite sequence once
-				sequence.current = lSystem.rewrite(rulesDef, sequence.current);
+				newSequence = lSystem.rewrite(rulesDef, sequence);
 			} else {
-				sequence.current = axiom;
+				newSequence = axiom;
 				for (let i = 0; i < newIterations; i++) {
-					sequence.current = lSystem.rewrite(rulesDef, sequence.current);
+					newSequence = lSystem.rewrite(rulesDef, newSequence);
 				}
 			}
 
-			redraw();
-
+			setSequence(newSequence);
 			_setIterations(newIterations);
 		}
 
@@ -58,14 +52,19 @@ namespace ui {
 		}, [ruleList]);
 
 		const canvasRef = React.useRef<HTMLCanvasElement>();
-		const sequence = React.useRef<string>(axiom);
 		const turtle = React.useRef(new lSystem.Turtle());
+
+		//re-draw if delta, dist change
+		//use feect is not designed for it, but fuck it
+		React.useEffect(() => {
+			redraw();
+		}, [delta, dist, distScale, sequence]);
 
 		const redraw = () => {
 			const ctx = canvasRef.current.getContext("2d");
 			ctx.fillStyle = "#ffffff";
 			ctx.fillRect(0, 0, 800, 800);
-			turtle.current.draw(sequence.current, dist, Math.PI * delta / 180, ctx);
+			turtle.current.draw(sequence, dist, Math.PI * delta / 180, distScale, ctx);
 		};
 
 		const onSelectFile = (file: ui.File) => {
@@ -121,10 +120,25 @@ namespace ui {
 				prob: 0
 			});
 			setRuleList(ruleList.slice(0));
-		}
+		};
+
+		const onRemoveRule = (i: number) => {
+			ruleList.splice(i, 1);
+			setRuleList(ruleList.slice(0));
+		};
+
+		const redo = () => {
+			let newSequence = axiom;
+			for (let i = 0; i < iterations; i++) {
+				newSequence = lSystem.rewrite(rulesDef, newSequence);
+			}
+
+			setSequence(newSequence);
+		};
 
 		return (<div>
 			<ui.FileUpload label="Select the l-system file" accept="json" callback={onSelectFile}></ui.FileUpload>
+			<div>{sequence}</div>
 			<div>
 				<label>Axiom:</label>
 				<input value={axiom} onChange={(e) => setAxiom(e.target.value)}></input>
@@ -138,13 +152,18 @@ namespace ui {
 				<input min={0} type="number" value={dist} onChange={(e) => setDist(e.target.valueAsNumber)}></input>
 			</div>
 			<div>
+				<label>DistScale:</label>
+				<input min={0} step={0.1} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
+			</div>
+			<div>
 				<label>Iterations:</label>
 				<input min={0} type="number" value={iterations} onChange={(e) => setIterations(e.target.valueAsNumber)}></input>
 			</div>
+			<button onClick={redo}>Redo</button>
 			<div>
 				<button onClick={onAddRule}>Add Rule</button>
 				Rules:
-				{ruleList.map((rule, i) => <Rule {...rule} key={i} callback={onChangeRule.bind(null, i)}></Rule>)}
+				{ruleList.map((rule, i) => <Rule {...rule} key={i} onChange={onChangeRule.bind(null, i)} onRemove={onRemoveRule.bind(null, i)}></Rule>)}
 
 			</div>
 			<canvas ref={canvasRef} width="800" height="800"></canvas>
