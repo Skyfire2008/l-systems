@@ -6,6 +6,7 @@ namespace lSystem {
 		y: number;
 		angle: number;
 		dist: number;
+		lineWidth: number;
 	}
 
 	export class Turtle {
@@ -13,6 +14,7 @@ namespace lSystem {
 		private dist: number;
 		private delta: number;
 		private distScale: number;
+		private lineWidth: number;
 
 		private scale = 1;
 
@@ -36,6 +38,8 @@ namespace lSystem {
 			this.actions.set("-", this.turnRight);
 			this.actions.set(">", this.multDist);
 			this.actions.set("<", this.divDist);
+			this.actions.set("#", this.multLineWidth);
+			this.actions.set("!", this.divLineWidth);
 
 			this.calibrationActions = new Map<string, () => void>();
 			this.calibrationActions.set("[", this.push);
@@ -45,6 +49,7 @@ namespace lSystem {
 				this.y = state.y;
 				this.angle = state.angle;
 				this.dist = state.dist;
+				this.lineWidth = state.lineWidth;
 			});
 			this.calibrationActions.set("+", this.turnLeft);
 			this.calibrationActions.set("-", this.turnRight);
@@ -56,6 +61,12 @@ namespace lSystem {
 			this.calibrationActions.set("f", nextPos);
 			this.calibrationActions.set(">", this.multDist);
 			this.calibrationActions.set("<", this.divDist);
+			this.calibrationActions.set("#", () => {
+				this.lineWidth *= this.distScale;
+			});
+			this.calibrationActions.set("!", () => {
+				this.lineWidth /= this.distScale;
+			});
 		}
 
 		/**
@@ -75,22 +86,28 @@ namespace lSystem {
 			let minX = Number.POSITIVE_INFINITY;
 			let minY = Number.POSITIVE_INFINITY;
 
+			let maxWidth = 1;
+
 			const seqArray = seq.split("");
 			for (const c of seqArray) {
 				const action = this.calibrationActions.get(c);
 				if (action !== undefined) {
 					action.bind(this)();
+
 					maxX = Math.max(this.x, maxX);
 					minX = Math.min(this.x, minX);
 					maxY = Math.max(this.y, maxY);
 					minY = Math.min(this.y, minY);
+
+					maxWidth = Math.max(maxWidth, this.lineWidth);
 				}
 			}
 
 			const drawingWidth = maxX - minX;
 			const drawingHeight = maxY - minY;
-			//subtract 2 from width and height to give a margin of 1 pixel
-			this.scale = 1.0 / Math.max(drawingWidth / (width - 2), drawingHeight / (height - 2));
+			//subtract double maxWidth from width and height to give the margin
+			maxWidth = maxWidth < 1 ? 0 : maxWidth;
+			this.scale = 1.0 / Math.max(drawingWidth / (width - 2 * maxWidth), drawingHeight / (height - 2 * maxWidth));
 
 			this.x = (width / 2 - minX) * this.scale + 1;
 			this.y = (height / 2 - minY) * this.scale + 1;
@@ -104,13 +121,15 @@ namespace lSystem {
 		 * @param dist		default move distance
 		 * @param delta		default turn angle
 		 * @param distScale move distance scaling factor
+		 * @param lineWidth stroke width
 		 * @param ctx 		rendering context
 		 */
-		public draw(seq: string, dist: number, delta: number, distScale: number, ctx: CanvasRenderingContext2D) {
+		public draw(seq: string, dist: number, delta: number, distScale: number, lineWidth: number, ctx: CanvasRenderingContext2D) {
 			//set the settings
 			this.dist = dist;
 			this.delta = delta;
 			this.distScale = distScale;
+			this.lineWidth = lineWidth;
 
 			//first calibrate...
 			this.calibrate(seq, ctx.canvas.width, ctx.canvas.width);
@@ -118,6 +137,8 @@ namespace lSystem {
 			//restore state
 			this.dist = dist;
 			this.delta = delta;
+			this.lineWidth = lineWidth;
+			ctx.lineWidth = lineWidth;
 
 			//then draw normally
 			const seqArray = seq.split("");
@@ -141,8 +162,10 @@ namespace lSystem {
 		private drawLine(ctx: CanvasRenderingContext2D) {
 			this.x += Math.cos(this.angle) * this.dist * this.scale;
 			this.y += Math.sin(this.angle) * this.dist * this.scale;
+
+			ctx.lineTo(this.x, this.y);
 			//floor the pixel coordinates and add 0.5 so that the line is drawn to the middle of the pixel
-			ctx.lineTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
+			//ctx.lineTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
 		}
 
 		/**
@@ -152,7 +175,24 @@ namespace lSystem {
 		private move(ctx: CanvasRenderingContext2D) {
 			this.x += Math.cos(this.angle) * this.dist * this.scale;
 			this.y += Math.sin(this.angle) * this.dist * this.scale;
-			ctx.moveTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
+			ctx.moveTo(this.x, this.y);
+			//ctx.moveTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
+		}
+
+		private multLineWidth(ctx: CanvasRenderingContext2D) {
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(this.x, this.y);
+			this.lineWidth *= this.distScale;
+			ctx.lineWidth = this.lineWidth;
+		}
+
+		private divLineWidth(ctx: CanvasRenderingContext2D) {
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(this.x, this.y);
+			this.lineWidth /= this.distScale;
+			ctx.lineWidth = this.lineWidth;
 		}
 
 		private multDist(ctx: CanvasRenderingContext2D) {
@@ -172,7 +212,8 @@ namespace lSystem {
 				x: this.x,
 				y: this.y,
 				angle: this.angle,
-				dist: this.dist
+				dist: this.dist,
+				lineWidth: this.lineWidth
 			});
 		}
 
@@ -186,6 +227,10 @@ namespace lSystem {
 			this.y = state.y;
 			this.angle = state.angle;
 			this.dist = state.dist;
+			this.lineWidth = state.lineWidth;
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.lineWidth = this.lineWidth;
 			ctx.moveTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
 		}
 

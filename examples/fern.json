@@ -1,0 +1,1 @@
+{"name":"fern","axiom":"T","dist":1,"distScale":1.1,"delta":4,"rules":{"L":[{"succ":"F+++<<[+++F][---F]L","prob":1,"odds":4}],"R":[{"succ":"F---<<[+++F][---F]R","prob":1,"odds":4}],"T":[{"succ":"F[+++L][---R]+<T","prob":1,"odds":1}]}}

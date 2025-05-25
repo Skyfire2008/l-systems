@@ -14,6 +14,7 @@ namespace ui {
 		const [delta, setDelta] = React.useState(60);
 		const [dist, setDist] = React.useState(1);
 		const [distScale, setDistScale] = React.useState(2);
+		const [lineWidth, setLineWidth] = React.useState(1);
 
 		const [iterations, _setIterations] = React.useState(0);
 		const setIterations = (newIterations: number) => {
@@ -55,16 +56,18 @@ namespace ui {
 		const turtle = React.useRef(new lSystem.Turtle());
 
 		//re-draw if delta, dist change
-		//use feect is not designed for it, but fuck it
+		//use effect is not designed for this, but fuck it
 		React.useEffect(() => {
 			redraw();
-		}, [delta, dist, distScale, sequence]);
+		}, [delta, dist, distScale, sequence, lineWidth]);
 
 		const redraw = () => {
 			const ctx = canvasRef.current.getContext("2d");
+			ctx.lineCap = "round";
+			ctx.lineJoin = "round";
 			ctx.fillStyle = "#ffffff";
 			ctx.fillRect(0, 0, 800, 800);
-			turtle.current.draw(sequence, dist, Math.PI * delta / 180, distScale, ctx);
+			turtle.current.draw(sequence, dist, Math.PI * delta / 180, distScale, lineWidth, ctx);
 		};
 
 		const onSelectFile = (file: ui.File) => {
@@ -72,6 +75,7 @@ namespace ui {
 			setName(system.name);
 			setAxiom(system.axiom);
 			setDelta(system.delta);
+			setDistScale(system.distScale);
 
 			const newRuleList: Array<Rule> = [];
 			for (const pred in system.rules) {
@@ -123,7 +127,24 @@ namespace ui {
 		};
 
 		const onRemoveRule = (i: number) => {
+
+			const oldRule = ruleList[i];
 			ruleList.splice(i, 1);
+
+			//recalculate probabilities
+			let totalOdds = 0;
+			const predRules: Array<Rule> = [];
+			for (const rule of ruleList) {
+				if (rule.pred == oldRule.pred) {
+					predRules.push(rule);
+					totalOdds += rule.odds;
+				}
+			}
+
+			for (const rule of predRules) {
+				rule.prob = rule.odds / totalOdds;
+			}
+
 			setRuleList(ruleList.slice(0));
 		};
 
@@ -136,9 +157,31 @@ namespace ui {
 			setSequence(newSequence);
 		};
 
+		const save = () => {
+			const data: lSystem.LSystem = {
+				name,
+				axiom,
+				dist,
+				distScale,
+				delta,
+				rules: rulesDef
+			};
+			const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+			const a = document.createElement("a");
+			a.download = `${name}.json`;
+			a.href = URL.createObjectURL(blob);
+			a.addEventListener("click", (e) => setTimeout(() => URL.revokeObjectURL(a.href), 1000));
+			a.click();
+		};
+
 		return (<div>
-			<ui.FileUpload label="Select the l-system file" accept="json" callback={onSelectFile}></ui.FileUpload>
-			<div>{sequence}</div>
+			<ui.FileUpload label="Select the l-system file: " accept="json" callback={onSelectFile}></ui.FileUpload>
+			<button onClick={save}>Save as...</button>
+			<textarea value={sequence}></textarea>
+			<div>
+				<label>Name:</label>
+				<input value={name} onChange={(e) => setName(e.target.value)}></input>
+			</div>
 			<div>
 				<label>Axiom:</label>
 				<input value={axiom} onChange={(e) => setAxiom(e.target.value)}></input>
@@ -152,8 +195,12 @@ namespace ui {
 				<input min={0} type="number" value={dist} onChange={(e) => setDist(e.target.valueAsNumber)}></input>
 			</div>
 			<div>
-				<label>DistScale:</label>
+				<label>Dist Scale:</label>
 				<input min={0} step={0.1} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
+			</div>
+			<div>
+				<label>Line Width:</label>
+				<input min={1} step={1} type="number" value={lineWidth} onChange={(e) => setLineWidth(e.target.valueAsNumber)}></input>
 			</div>
 			<div>
 				<label>Iterations:</label>

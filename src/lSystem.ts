@@ -22,9 +22,10 @@ namespace lSystem {
 		rules: RulesDef;
 		delta: number;
 		dist: number;
+		distScale: number;
 	}
 
-	export const rewrite = (rules:RulesDef, input: string): string => {
+	export const rewrite = (rules: RulesDef, input: string): string => {
 		const charBuf: Array<string> = [];
 		const inputChars = input.split("");
 		for (const c of inputChars) {
