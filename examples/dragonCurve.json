@@ -1,0 +1,1 @@
+{"name":"dragonCurve","axiom":"X","dist":1,"distScale":1,"delta":90,"rules":{"X":[{"succ":"X+YF+","prob":1,"odds":1}],"Y":[{"succ":"-FX-Y","prob":1,"odds":1}]}}

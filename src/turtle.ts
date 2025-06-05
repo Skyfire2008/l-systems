@@ -4,16 +4,26 @@ namespace lSystem {
 	interface TurtleState {
 		x: number;
 		y: number;
-		angle: number;
 		dist: number;
+		angle: number;
+		turnAngle: number;
+		lineWidth: number;
+	}
+
+	export interface TurtleSettings {
+		dist: number;
+		distScale: number;
+		turnAngle: number;
+		turnScale: number;
 		lineWidth: number;
 	}
 
 	export class Turtle {
 
 		private dist: number;
-		private delta: number;
 		private distScale: number;
+		private turnAngle: number;
+		private turnScale: number;
 		private lineWidth: number;
 
 		private scale = 1;
@@ -36,6 +46,8 @@ namespace lSystem {
 			this.actions.set("]", this.pop);
 			this.actions.set("+", this.turnLeft);
 			this.actions.set("-", this.turnRight);
+			this.actions.set("*", this.multTurnAngle);
+			this.actions.set("/", this.divTurnAngle);
 			this.actions.set(">", this.multDist);
 			this.actions.set("<", this.divDist);
 			this.actions.set("#", this.multLineWidth);
@@ -48,11 +60,14 @@ namespace lSystem {
 				this.x = state.x;
 				this.y = state.y;
 				this.angle = state.angle;
+				this.turnAngle = state.turnAngle;
 				this.dist = state.dist;
 				this.lineWidth = state.lineWidth;
 			});
 			this.calibrationActions.set("+", this.turnLeft);
 			this.calibrationActions.set("-", this.turnRight);
+			this.calibrationActions.set("*", this.multTurnAngle);
+			this.calibrationActions.set("/", this.divTurnAngle);
 			const nextPos = () => {
 				this.x += Math.cos(this.angle) * this.dist;
 				this.y += Math.sin(this.angle) * this.dist;
@@ -118,27 +133,25 @@ namespace lSystem {
 		/**
 		 * Draw the given sequence of characters onto the given rendering context
 		 * @param seq 		sequence to draw
-		 * @param dist		default move distance
-		 * @param delta		default turn angle
-		 * @param distScale move distance scaling factor
-		 * @param lineWidth stroke width
+		 * @param settings	initial turtle settings
 		 * @param ctx 		rendering context
 		 */
-		public draw(seq: string, dist: number, delta: number, distScale: number, lineWidth: number, ctx: CanvasRenderingContext2D) {
+		public draw(seq: string, settings: TurtleSettings, ctx: CanvasRenderingContext2D) {
 			//set the settings
-			this.dist = dist;
-			this.delta = delta;
-			this.distScale = distScale;
-			this.lineWidth = lineWidth;
+			this.dist = settings.dist;
+			this.distScale = settings.distScale;
+			this.turnAngle = settings.turnAngle;
+			this.turnScale = settings.turnScale
+			this.lineWidth = settings.lineWidth;
 
 			//first calibrate...
 			this.calibrate(seq, ctx.canvas.width, ctx.canvas.width);
 
 			//restore state
-			this.dist = dist;
-			this.delta = delta;
-			this.lineWidth = lineWidth;
-			ctx.lineWidth = lineWidth;
+			this.dist = settings.dist;
+			this.turnAngle = settings.turnAngle;
+			this.lineWidth = settings.lineWidth;
+			ctx.lineWidth = this.lineWidth;
 
 			//then draw normally
 			const seqArray = seq.split("");
@@ -203,6 +216,14 @@ namespace lSystem {
 			this.dist /= this.distScale;
 		}
 
+		private multTurnAngle(ctx: CanvasRenderingContext2D) {
+			this.turnAngle *= this.turnScale;
+		}
+
+		private divTurnAngle(ctx: CanvasRenderingContext2D) {
+			this.turnAngle /= this.turnScale;
+		}
+
 		/**
 		 * Push the curretn state onto the stack
 		 * @param ctx rendering context
@@ -212,6 +233,7 @@ namespace lSystem {
 				x: this.x,
 				y: this.y,
 				angle: this.angle,
+				turnAngle: this.turnAngle,
 				dist: this.dist,
 				lineWidth: this.lineWidth
 			});
@@ -225,8 +247,9 @@ namespace lSystem {
 			const state = this.stack.pop();
 			this.x = state.x;
 			this.y = state.y;
-			this.angle = state.angle;
 			this.dist = state.dist;
+			this.angle = state.angle;
+			this.turnAngle = state.turnAngle;
 			this.lineWidth = state.lineWidth;
 			ctx.stroke();
 			ctx.beginPath();
@@ -240,7 +263,7 @@ namespace lSystem {
 		 */
 		private turnRight(ctx: CanvasRenderingContext2D) {
 			//turn directions are flipped because the canvas' y-axis is also flipped
-			this.angle += this.delta;
+			this.angle += this.turnAngle;
 		}
 
 		/**
@@ -248,7 +271,7 @@ namespace lSystem {
 		 * @param ctx rendering context
 		 */
 		private turnLeft(ctx: CanvasRenderingContext2D) {
-			this.angle -= this.delta;
+			this.angle -= this.turnAngle;
 		}
 	}
 }

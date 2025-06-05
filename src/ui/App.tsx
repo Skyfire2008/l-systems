@@ -11,7 +11,8 @@ namespace ui {
 			_setAxiom(newAxiom);
 		};
 
-		const [delta, setDelta] = React.useState(60);
+		const [turnAngle, setTurnAngle] = React.useState(60);
+		const [turnScale, setTurnScale] = React.useState(1);
 		const [dist, setDist] = React.useState(1);
 		const [distScale, setDistScale] = React.useState(2);
 		const [lineWidth, setLineWidth] = React.useState(1);
@@ -59,7 +60,7 @@ namespace ui {
 		//use effect is not designed for this, but fuck it
 		React.useEffect(() => {
 			redraw();
-		}, [delta, dist, distScale, sequence, lineWidth]);
+		}, [turnAngle, turnScale, dist, distScale, sequence, lineWidth]);
 
 		const redraw = () => {
 			const ctx = canvasRef.current.getContext("2d");
@@ -67,15 +68,25 @@ namespace ui {
 			ctx.lineJoin = "round";
 			ctx.fillStyle = "#ffffff";
 			ctx.fillRect(0, 0, 800, 800);
-			turtle.current.draw(sequence, dist, Math.PI * delta / 180, distScale, lineWidth, ctx);
+			turtle.current.draw(sequence,
+				{
+					dist,
+					turnAngle: Math.PI * turnAngle / 180,
+					turnScale,
+					distScale,
+					lineWidth
+				}, ctx);
 		};
 
 		const onSelectFile = (file: ui.File) => {
 			const system: lSystem.LSystem = JSON.parse(file.contents);
 			setName(system.name);
 			setAxiom(system.axiom);
-			setDelta(system.delta);
-			setDistScale(system.distScale);
+			setDist(system.dist);
+			setDistScale(system.distScale != undefined ? system.distScale : 1.0);
+			setTurnAngle(system.turnAngle);
+			setTurnScale(system.turnScale != undefined ? system.turnScale : 1.0);
+			setLineWidth(system.lineWidth != undefined ? system.lineWidth : 1.0);
 
 			const newRuleList: Array<Rule> = [];
 			for (const pred in system.rules) {
@@ -87,29 +98,37 @@ namespace ui {
 			setRuleList(newRuleList);
 		};
 
-		const onChangeRule = (i: number, pred: string, succ: string, odds: number) => {
-			const old = ruleList[i];
-			old.succ = succ;
+		/**
+		 * Recalculates probabilities of all rules with the same predecessor
+		 * @param predecessor 	predecessor
+		 * @param rules 		rules array after update
+		 */
+		const recalcProbs = (predecessor: string, rules: Array<Rule>) => {
+			const filteredRules = rules.filter((rule) => rule.pred == predecessor);
 
-			//if odds changed, need to recalculate probabilities of this rule as well as all related ones
-			if (old.odds != odds) {
-				old.odds = odds;
-				let totalOdds = 0;
-				const predRules: Array<Rule> = [];
-				for (const rule of ruleList) {
-					if (rule.pred == old.pred) {
-						totalOdds += rule.odds;
-						predRules.push(rule);
-					}
-				}
-
-				for (const rule of predRules) {
-					rule.prob = rule.odds / totalOdds;
-				}
+			let totalOdds = 0;
+			for (const rule of filteredRules) {
+				totalOdds += rule.odds;
 			}
 
-			if (old.pred != pred) {
-				old.pred = pred;
+			for (const rule of filteredRules) {
+				rule.prob = rule.odds / totalOdds;
+			}
+		};
+
+		const onChangeRule = (i: number, pred: string, succ: string, odds: number) => {
+			const rule = ruleList[i];
+			rule.succ = succ;
+
+			//if odds changed, need to recalculate probabilities of this rule as well as all related ones
+			if (rule.odds != odds) {
+				rule.odds = odds;
+				recalcProbs(rule.pred, ruleList);
+			} else if (rule.pred != pred) { //if predecessor changed, recalc probabilities for both old and new predecessors and sort
+				const oldPred = rule.pred;
+				rule.pred = pred;
+				recalcProbs(oldPred, ruleList);
+				recalcProbs(rule.pred, ruleList);
 				ruleList.sort((a, b) => a.pred.localeCompare(b.pred));
 			}
 
@@ -132,18 +151,7 @@ namespace ui {
 			ruleList.splice(i, 1);
 
 			//recalculate probabilities
-			let totalOdds = 0;
-			const predRules: Array<Rule> = [];
-			for (const rule of ruleList) {
-				if (rule.pred == oldRule.pred) {
-					predRules.push(rule);
-					totalOdds += rule.odds;
-				}
-			}
-
-			for (const rule of predRules) {
-				rule.prob = rule.odds / totalOdds;
-			}
+			recalcProbs(oldRule.pred, ruleList);
 
 			setRuleList(ruleList.slice(0));
 		};
@@ -163,7 +171,9 @@ namespace ui {
 				axiom,
 				dist,
 				distScale,
-				delta,
+				turnAngle,
+				turnScale,
+				lineWidth,
 				rules: rulesDef
 			};
 			const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
@@ -186,17 +196,26 @@ namespace ui {
 				<label>Axiom:</label>
 				<input value={axiom} onChange={(e) => setAxiom(e.target.value)}></input>
 			</div>
-			<div>
-				<label>Delta:</label>
-				<input type="number" value={delta} onChange={(e) => setDelta(e.target.valueAsNumber)}></input>
+			<div className="line">
+				<div>
+					<label>Delta:</label>
+					<input type="number" value={turnAngle} onChange={(e) => setTurnAngle(e.target.valueAsNumber)}></input>
+				</div>
+
+				<div>
+					<label>Delta Scale:</label>
+					<input step={0.1} type="number" value={turnScale} onChange={(e) => setTurnScale(e.target.valueAsNumber)}></input>
+				</div>
 			</div>
-			<div>
-				<label>Dist:</label>
-				<input min={0} type="number" value={dist} onChange={(e) => setDist(e.target.valueAsNumber)}></input>
-			</div>
-			<div>
-				<label>Dist Scale:</label>
-				<input min={0} step={0.1} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
+			<div className="line">
+				<div>
+					<label>Dist:</label>
+					<input min={0} type="number" value={dist} onChange={(e) => setDist(e.target.valueAsNumber)}></input>
+				</div>
+				<div>
+					<label>Dist Scale:</label>
+					<input min={0} step={0.1} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
+				</div>
 			</div>
 			<div>
 				<label>Line Width:</label>

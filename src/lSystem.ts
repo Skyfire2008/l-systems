@@ -20,9 +20,11 @@ namespace lSystem {
 		name: string;
 		axiom: string;
 		rules: RulesDef;
-		delta: number;
 		dist: number;
 		distScale: number;
+		turnAngle: number;
+		turnScale: number;
+		lineWidth: number;
 	}
 
 	export const rewrite = (rules: RulesDef, input: string): string => {
