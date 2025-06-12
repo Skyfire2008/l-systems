@@ -21,11 +21,25 @@ namespace lSystem {
 		axiom: string;
 		rules: RulesDef;
 		dist: number;
-		distScale: number;
+		distScale?: number;
 		turnAngle: number;
-		turnScale: number;
-		lineWidth: number;
+		turnScale?: number;
+		lineWidth?: number;
+		colors?: Array<string>;
 	}
+
+	export const loadLSystem = (input: string): LSystem => {
+		let system: LSystem = JSON.parse(input);
+		return Object.assign({}, {
+			distScale: 1,
+			turnScale: 1,
+			lineWidth: 1,
+			colors: [
+				"#000000", "#000000", "#000000", "#000000", "#000000",
+				"#000000", "#000000", "#000000", "#000000", "#000000"
+			]
+		}, system);
+	};
 
 	export const rewrite = (rules: RulesDef, input: string): string => {
 		const charBuf: Array<string> = [];

@@ -8,6 +8,7 @@ namespace lSystem {
 		angle: number;
 		turnAngle: number;
 		lineWidth: number;
+		color: string;
 	}
 
 	export interface TurtleSettings {
@@ -16,6 +17,7 @@ namespace lSystem {
 		turnAngle: number;
 		turnScale: number;
 		lineWidth: number;
+		colors: Array<string>;
 	}
 
 	export class Turtle {
@@ -25,6 +27,9 @@ namespace lSystem {
 		private turnAngle: number;
 		private turnScale: number;
 		private lineWidth: number;
+
+		private colors: Array<string>;
+		private color: string;
 
 		private scale = 1;
 
@@ -48,10 +53,21 @@ namespace lSystem {
 			this.actions.set("-", this.turnRight);
 			this.actions.set("*", this.multTurnAngle);
 			this.actions.set("/", this.divTurnAngle);
+			this.actions.set("|", this.flip);
 			this.actions.set(">", this.multDist);
 			this.actions.set("<", this.divDist);
 			this.actions.set("#", this.multLineWidth);
 			this.actions.set("!", this.divLineWidth);
+			this.actions.set("0", this.setColor.bind(this, 0));
+			this.actions.set("1", this.setColor.bind(this, 1));
+			this.actions.set("2", this.setColor.bind(this, 2));
+			this.actions.set("3", this.setColor.bind(this, 3));
+			this.actions.set("4", this.setColor.bind(this, 4));
+			this.actions.set("5", this.setColor.bind(this, 5));
+			this.actions.set("6", this.setColor.bind(this, 6));
+			this.actions.set("7", this.setColor.bind(this, 7));
+			this.actions.set("8", this.setColor.bind(this, 8));
+			this.actions.set("9", this.setColor.bind(this, 9));
 
 			this.calibrationActions = new Map<string, () => void>();
 			this.calibrationActions.set("[", this.push);
@@ -68,6 +84,7 @@ namespace lSystem {
 			this.calibrationActions.set("-", this.turnRight);
 			this.calibrationActions.set("*", this.multTurnAngle);
 			this.calibrationActions.set("/", this.divTurnAngle);
+			this.calibrationActions.set("|", this.flip);
 			const nextPos = () => {
 				this.x += Math.cos(this.angle) * this.dist;
 				this.y += Math.sin(this.angle) * this.dist;
@@ -82,6 +99,20 @@ namespace lSystem {
 			this.calibrationActions.set("!", () => {
 				this.lineWidth /= this.distScale;
 			});
+
+			const dummySetColor = (i: number) => {
+				this.color = this.colors[i];
+			};
+			this.calibrationActions.set("0", dummySetColor.bind(this, 0));
+			this.calibrationActions.set("1", dummySetColor.bind(this, 1));
+			this.calibrationActions.set("2", dummySetColor.bind(this, 2));
+			this.calibrationActions.set("3", dummySetColor.bind(this, 3));
+			this.calibrationActions.set("4", dummySetColor.bind(this, 4));
+			this.calibrationActions.set("5", dummySetColor.bind(this, 5));
+			this.calibrationActions.set("6", dummySetColor.bind(this, 6));
+			this.calibrationActions.set("7", dummySetColor.bind(this, 7));
+			this.calibrationActions.set("8", dummySetColor.bind(this, 8));
+			this.calibrationActions.set("9", dummySetColor.bind(this, 9));
 		}
 
 		/**
@@ -143,6 +174,8 @@ namespace lSystem {
 			this.turnAngle = settings.turnAngle;
 			this.turnScale = settings.turnScale
 			this.lineWidth = settings.lineWidth;
+			this.colors = settings.colors;
+			this.color = settings.colors[0];
 
 			//first calibrate...
 			this.calibrate(seq, ctx.canvas.width, ctx.canvas.width);
@@ -152,6 +185,7 @@ namespace lSystem {
 			this.turnAngle = settings.turnAngle;
 			this.lineWidth = settings.lineWidth;
 			ctx.lineWidth = this.lineWidth;
+			ctx.strokeStyle = this.color;
 
 			//then draw normally
 			const seqArray = seq.split("");
@@ -208,6 +242,18 @@ namespace lSystem {
 			ctx.lineWidth = this.lineWidth;
 		}
 
+		private setColor(i: number, ctx: CanvasRenderingContext2D) {
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(this.x, this.y);
+			this.color = this.colors[i];
+			ctx.strokeStyle = this.color;
+		}
+
+		private flip(ctx: CanvasRenderingContext2D) {
+			this.turnAngle *= -1;
+		}
+
 		private multDist(ctx: CanvasRenderingContext2D) {
 			this.dist *= this.distScale;
 		}
@@ -235,7 +281,8 @@ namespace lSystem {
 				angle: this.angle,
 				turnAngle: this.turnAngle,
 				dist: this.dist,
-				lineWidth: this.lineWidth
+				lineWidth: this.lineWidth,
+				color: this.color
 			});
 		}
 
@@ -251,6 +298,7 @@ namespace lSystem {
 			this.angle = state.angle;
 			this.turnAngle = state.turnAngle;
 			this.lineWidth = state.lineWidth;
+			this.color = state.color;
 			ctx.stroke();
 			ctx.beginPath();
 			ctx.lineWidth = this.lineWidth;

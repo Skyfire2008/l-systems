@@ -3,6 +3,10 @@
 	text-align: right;
 }
 
+.rule .succ {
+	width: 200px;
+}
+
 .rule .prob {
 	width: 40px;
 }
@@ -27,4 +31,12 @@ input[type="number"] {
 .line {
 	display: flex;
 	flex-direction: row;
+}
+
+input[type="color"] {
+	width: 20px;
+	height: 12px;
+	border: 0px;
+	padding: 0px;
+	cursor: pointer;
 }

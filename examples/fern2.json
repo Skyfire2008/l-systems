@@ -1,0 +1,1 @@
+{"name":"fern2","axiom":"T","dist":1,"distScale":1.1,"turnAngle":10,"turnScale":2,"lineWidth":2,"rules":{"G":[{"succ":"F","prob":0.75,"odds":3},{"succ":"|F","prob":0.25,"odds":1}],"L":[{"succ":"G+++<<[+++G][---G]L","prob":1,"odds":4}],"R":[{"succ":"G---<<[+++G][---G]R","prob":1,"odds":4}],"T":[{"succ":"G[+++/L][---/R]+<!T","prob":1,"odds":1}]}}

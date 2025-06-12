@@ -16,6 +16,9 @@ namespace ui {
 		const [dist, setDist] = React.useState(1);
 		const [distScale, setDistScale] = React.useState(2);
 		const [lineWidth, setLineWidth] = React.useState(1);
+		const [colors, setColors] = React.useState([
+			"#000000", "#000000", "#000000", "#000000", "#000000",
+			"#000000", "#000000", "#000000", "#000000", "#000000"]);
 
 		const [iterations, _setIterations] = React.useState(0);
 		const setIterations = (newIterations: number) => {
@@ -60,7 +63,7 @@ namespace ui {
 		//use effect is not designed for this, but fuck it
 		React.useEffect(() => {
 			redraw();
-		}, [turnAngle, turnScale, dist, distScale, sequence, lineWidth]);
+		}, [turnAngle, turnScale, dist, distScale, sequence, lineWidth, colors]);
 
 		const redraw = () => {
 			const ctx = canvasRef.current.getContext("2d");
@@ -74,19 +77,21 @@ namespace ui {
 					turnAngle: Math.PI * turnAngle / 180,
 					turnScale,
 					distScale,
-					lineWidth
+					lineWidth,
+					colors
 				}, ctx);
 		};
 
 		const onSelectFile = (file: ui.File) => {
-			const system: lSystem.LSystem = JSON.parse(file.contents);
+			const system: lSystem.LSystem = lSystem.loadLSystem(file.contents);
 			setName(system.name);
 			setAxiom(system.axiom);
 			setDist(system.dist);
-			setDistScale(system.distScale != undefined ? system.distScale : 1.0);
+			setDistScale(system.distScale);
 			setTurnAngle(system.turnAngle);
-			setTurnScale(system.turnScale != undefined ? system.turnScale : 1.0);
-			setLineWidth(system.lineWidth != undefined ? system.lineWidth : 1.0);
+			setTurnScale(system.turnScale);
+			setLineWidth(system.lineWidth);
+			setColors(system.colors);
 
 			const newRuleList: Array<Rule> = [];
 			for (const pred in system.rules) {
@@ -174,7 +179,8 @@ namespace ui {
 				turnAngle,
 				turnScale,
 				lineWidth,
-				rules: rulesDef
+				rules: rulesDef,
+				colors
 			};
 			const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
 			const a = document.createElement("a");
@@ -221,11 +227,14 @@ namespace ui {
 				<label>Line Width:</label>
 				<input min={1} step={1} type="number" value={lineWidth} onChange={(e) => setLineWidth(e.target.valueAsNumber)}></input>
 			</div>
-			<div>
-				<label>Iterations:</label>
-				<input min={0} type="number" value={iterations} onChange={(e) => setIterations(e.target.valueAsNumber)}></input>
+			<ColorPalette colors={colors} onColorChange={setColors}></ColorPalette>
+			<div className="line">
+				<div>
+					<label>Iterations:</label>
+					<input min={0} type="number" value={iterations} onChange={(e) => setIterations(e.target.valueAsNumber)}></input>
+				</div>
+				<button onClick={redo}>Redo</button>
 			</div>
-			<button onClick={redo}>Redo</button>
 			<div>
 				<button onClick={onAddRule}>Add Rule</button>
 				Rules:

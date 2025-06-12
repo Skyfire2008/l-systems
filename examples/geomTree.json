@@ -1,0 +1,1 @@
+{"name":"geomTree","axiom":"-T","dist":1,"distScale":1.2,"turnAngle":60,"turnScale":3.6,"lineWidth":9,"rules":{"B":[{"succ":"","prob":0.6666666666666666,"odds":2},{"succ":"T","prob":0.3333333333333333,"odds":1}],"T":[{"succ":"FF+F//+**F+[-<|B]FF-F//+**F-<!T","prob":1,"odds":1}]}}
