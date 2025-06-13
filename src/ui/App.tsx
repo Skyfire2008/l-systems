@@ -19,6 +19,7 @@ namespace ui {
 		const [colors, setColors] = React.useState([
 			"#000000", "#000000", "#000000", "#000000", "#000000",
 			"#000000", "#000000", "#000000", "#000000", "#000000"]);
+		const [colorMod, setColorMod] = React.useState<util.HSL>({ h: 0, s: 1, l: 1 });
 
 		const [iterations, _setIterations] = React.useState(0);
 		const setIterations = (newIterations: number) => {
@@ -59,11 +60,11 @@ namespace ui {
 		const canvasRef = React.useRef<HTMLCanvasElement>();
 		const turtle = React.useRef(new lSystem.Turtle());
 
-		//re-draw if delta, dist change
+		//re-draw if delta, dist, etc. change
 		//use effect is not designed for this, but fuck it
 		React.useEffect(() => {
 			redraw();
-		}, [turnAngle, turnScale, dist, distScale, sequence, lineWidth, colors]);
+		}, [turnAngle, turnScale, dist, distScale, sequence, lineWidth, colors, colorMod]);
 
 		const redraw = () => {
 			const ctx = canvasRef.current.getContext("2d");
@@ -78,7 +79,8 @@ namespace ui {
 					turnScale,
 					distScale,
 					lineWidth,
-					colors
+					colors,
+					colorMod
 				}, ctx);
 		};
 
@@ -92,6 +94,7 @@ namespace ui {
 			setTurnScale(system.turnScale);
 			setLineWidth(system.lineWidth);
 			setColors(system.colors);
+			setColorMod(system.colorMod);
 
 			const newRuleList: Array<Rule> = [];
 			for (const pred in system.rules) {
@@ -180,7 +183,8 @@ namespace ui {
 				turnScale,
 				lineWidth,
 				rules: rulesDef,
-				colors
+				colors,
+				colorMod
 			};
 			const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
 			const a = document.createElement("a");
@@ -228,6 +232,17 @@ namespace ui {
 				<input min={1} step={1} type="number" value={lineWidth} onChange={(e) => setLineWidth(e.target.valueAsNumber)}></input>
 			</div>
 			<ColorPalette colors={colors} onColorChange={setColors}></ColorPalette>
+			<div>Color Modifier:
+				<input type="number" min="0" max="360" value={colorMod.h} onChange={
+					(e) => setColorMod(Object.assign({}, colorMod, { h: e.target.valueAsNumber }))
+				}></input>
+				<input type="number" min="0" step="0.01" value={colorMod.s} onChange={
+					(e) => setColorMod(Object.assign({}, colorMod, { s: e.target.valueAsNumber }))
+				}></input>
+				<input type="number" min="0" step="0.01" value={colorMod.l} onChange={
+					(e) => setColorMod(Object.assign({}, colorMod, { l: e.target.valueAsNumber }))
+				}></input>
+			</div>
 			<div className="line">
 				<div>
 					<label>Iterations:</label>

@@ -23,6 +23,7 @@ namespace ui {
 		for (let i = 5; i < 10; i++) {
 			const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 				colors[i] = e.target.value;
+				onColorChange(colors.slice(0));
 			};
 			line1.push(<div key={i}>
 				{i + ":"}

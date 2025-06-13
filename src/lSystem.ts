@@ -26,6 +26,7 @@ namespace lSystem {
 		turnScale?: number;
 		lineWidth?: number;
 		colors?: Array<string>;
+		colorMod?: util.HSL;
 	}
 
 	export const loadLSystem = (input: string): LSystem => {
@@ -37,7 +38,8 @@ namespace lSystem {
 			colors: [
 				"#000000", "#000000", "#000000", "#000000", "#000000",
 				"#000000", "#000000", "#000000", "#000000", "#000000"
-			]
+			],
+			colorMod: { h: 0, s: 1, l: 1 }
 		}, system);
 	};
 

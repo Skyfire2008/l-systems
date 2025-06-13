@@ -18,6 +18,7 @@ namespace lSystem {
 		turnScale: number;
 		lineWidth: number;
 		colors: Array<string>;
+		colorMod: util.HSL;
 	}
 
 	export class Turtle {
@@ -29,6 +30,7 @@ namespace lSystem {
 		private lineWidth: number;
 
 		private colors: Array<string>;
+		private colorMod: util.HSL;
 		private color: string;
 
 		private scale = 1;
@@ -68,6 +70,8 @@ namespace lSystem {
 			this.actions.set("7", this.setColor.bind(this, 7));
 			this.actions.set("8", this.setColor.bind(this, 8));
 			this.actions.set("9", this.setColor.bind(this, 9));
+			this.actions.set("H", this.modColorFw);
+			this.actions.set("h", this.modColorB);
 
 			this.calibrationActions = new Map<string, () => void>();
 			this.calibrationActions.set("[", this.push);
@@ -113,6 +117,8 @@ namespace lSystem {
 			this.calibrationActions.set("7", dummySetColor.bind(this, 7));
 			this.calibrationActions.set("8", dummySetColor.bind(this, 8));
 			this.calibrationActions.set("9", dummySetColor.bind(this, 9));
+			this.calibrationActions.set("H", () => { });
+			this.calibrationActions.set("h", () => { });
 		}
 
 		/**
@@ -175,6 +181,7 @@ namespace lSystem {
 			this.turnScale = settings.turnScale
 			this.lineWidth = settings.lineWidth;
 			this.colors = settings.colors;
+			this.colorMod = settings.colorMod;
 			this.color = settings.colors[0];
 
 			//first calibrate...
@@ -247,6 +254,40 @@ namespace lSystem {
 			ctx.beginPath();
 			ctx.moveTo(this.x, this.y);
 			this.color = this.colors[i];
+			ctx.strokeStyle = this.color;
+		}
+
+		private modColorFw(ctx: CanvasRenderingContext2D) {
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(this.x, this.y);
+
+			const hsl = util.rgb2hsl(this.color);
+			hsl.h = (hsl.h + this.colorMod.h) % 360;
+			while (hsl.h < 0) {
+				hsl.h += 360;
+			}
+			hsl.s = Math.max(Math.min(1.0, hsl.s * this.colorMod.s), 0);
+			hsl.l = Math.max(Math.min(1.0, hsl.l * this.colorMod.l), 0);
+
+			this.color = util.hsl2rgb(hsl);
+			ctx.strokeStyle = this.color;
+		}
+
+		private modColorB(ctx: CanvasRenderingContext2D) {
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(this.x, this.y);
+
+			const hsl = util.rgb2hsl(this.color);
+			hsl.h = (hsl.h - this.colorMod.h) % 360;
+			while (hsl.h < 0) {
+				hsl.h += 360;
+			}
+			hsl.s = Math.max(Math.min(1.0, hsl.s / this.colorMod.s), 0);
+			hsl.l = Math.max(Math.min(1.0, hsl.l / this.colorMod.l), 0);
+
+			this.color = util.hsl2rgb(hsl);
 			ctx.strokeStyle = this.color;
 		}
 
