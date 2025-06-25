@@ -95,6 +95,7 @@ namespace ui {
 			setLineWidth(system.lineWidth);
 			setColors(system.colors);
 			setColorMod(system.colorMod);
+			_setIterations(0);
 
 			const newRuleList: Array<Rule> = [];
 			for (const pred in system.rules) {
@@ -194,69 +195,78 @@ namespace ui {
 			a.click();
 		};
 
-		return (<div>
-			<ui.FileUpload label="Select the l-system file: " accept="json" callback={onSelectFile}></ui.FileUpload>
-			<button onClick={save}>Save as...</button>
-			<textarea value={sequence}></textarea>
-			<div>
-				<label>Name:</label>
-				<input value={name} onChange={(e) => setName(e.target.value)}></input>
-			</div>
-			<div>
-				<label>Axiom:</label>
-				<input value={axiom} onChange={(e) => setAxiom(e.target.value)}></input>
-			</div>
+		return (
 			<div className="line">
-				<div>
-					<label>Delta:</label>
-					<input type="number" value={turnAngle} onChange={(e) => setTurnAngle(e.target.valueAsNumber)}></input>
+				<div className="column">
+					<div className="line">
+						<ui.FileUpload label="Select the l-system file: " accept="json" callback={onSelectFile}></ui.FileUpload>
+						<button onClick={save}>Save as...</button>
+					</div>
+
+					<textarea readOnly={true} value={sequence}></textarea>
+					<div className="line">
+						<label>Name:</label>
+						<input value={name} onChange={(e) => setName(e.target.value)}></input>
+					</div>
+					<div className="line">
+						<label>Axiom:</label>
+						<input value={axiom} onChange={(e) => setAxiom(e.target.value)}></input>
+					</div>
+					<div className="line">
+						<div className="line">
+							<label>Delta:</label>
+							<input type="number" value={turnAngle} onChange={(e) => setTurnAngle(e.target.valueAsNumber)}></input>
+						</div>
+
+						<div className="line">
+							<label>Delta Scale:</label>
+							<input step={0.1} type="number" value={turnScale} onChange={(e) => setTurnScale(e.target.valueAsNumber)}></input>
+						</div>
+					</div>
+					<div className="line">
+						<div className="line">
+							<label>Dist:</label>
+							<input min={0} type="number" value={dist} onChange={(e) => setDist(e.target.valueAsNumber)}></input>
+						</div>
+						<div className="line">
+							<label>Dist Scale:</label>
+							<input min={0} step={0.1} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
+						</div>
+					</div>
+					<div className="line">
+						<label>Line Width:</label>
+						<input min={1} step={1} type="number" value={lineWidth} onChange={(e) => setLineWidth(e.target.valueAsNumber)}></input>
+					</div>
+					<ColorPalette colors={colors} onColorChange={setColors}></ColorPalette>
+					<div className="line">
+						Color Modifier:
+						<input type="number" min="0" max="360" value={colorMod.h} onChange={
+							(e) => setColorMod(Object.assign({}, colorMod, { h: e.target.valueAsNumber }))
+						}></input>
+						<input type="number" min="0" step="0.01" value={colorMod.s} onChange={
+							(e) => setColorMod(Object.assign({}, colorMod, { s: e.target.valueAsNumber }))
+						}></input>
+						<input type="number" min="0" step="0.01" value={colorMod.l} onChange={
+							(e) => setColorMod(Object.assign({}, colorMod, { l: e.target.valueAsNumber }))
+						}></input>
+					</div>
+					<div className="line">
+						<div>
+							<label>Iterations:</label>
+							<input min={0} type="number" value={iterations} onChange={(e) => setIterations(e.target.valueAsNumber)}></input>
+						</div>
+						<button onClick={redo}>Redo</button>
+					</div>
+					<div>
+						<button onClick={onAddRule}>Add Rule</button>
+						Rules:
+						{ruleList.map((rule, i) => <Rule {...rule} key={i} onChange={onChangeRule.bind(null, i)} onRemove={onRemoveRule.bind(null, i)}></Rule>)}
+
+					</div>
 				</div>
 
-				<div>
-					<label>Delta Scale:</label>
-					<input step={0.1} type="number" value={turnScale} onChange={(e) => setTurnScale(e.target.valueAsNumber)}></input>
-				</div>
+				<canvas ref={canvasRef} width="800" height="800"></canvas>
 			</div>
-			<div className="line">
-				<div>
-					<label>Dist:</label>
-					<input min={0} type="number" value={dist} onChange={(e) => setDist(e.target.valueAsNumber)}></input>
-				</div>
-				<div>
-					<label>Dist Scale:</label>
-					<input min={0} step={0.1} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
-				</div>
-			</div>
-			<div>
-				<label>Line Width:</label>
-				<input min={1} step={1} type="number" value={lineWidth} onChange={(e) => setLineWidth(e.target.valueAsNumber)}></input>
-			</div>
-			<ColorPalette colors={colors} onColorChange={setColors}></ColorPalette>
-			<div>Color Modifier:
-				<input type="number" min="0" max="360" value={colorMod.h} onChange={
-					(e) => setColorMod(Object.assign({}, colorMod, { h: e.target.valueAsNumber }))
-				}></input>
-				<input type="number" min="0" step="0.01" value={colorMod.s} onChange={
-					(e) => setColorMod(Object.assign({}, colorMod, { s: e.target.valueAsNumber }))
-				}></input>
-				<input type="number" min="0" step="0.01" value={colorMod.l} onChange={
-					(e) => setColorMod(Object.assign({}, colorMod, { l: e.target.valueAsNumber }))
-				}></input>
-			</div>
-			<div className="line">
-				<div>
-					<label>Iterations:</label>
-					<input min={0} type="number" value={iterations} onChange={(e) => setIterations(e.target.valueAsNumber)}></input>
-				</div>
-				<button onClick={redo}>Redo</button>
-			</div>
-			<div>
-				<button onClick={onAddRule}>Add Rule</button>
-				Rules:
-				{ruleList.map((rule, i) => <Rule {...rule} key={i} onChange={onChangeRule.bind(null, i)} onRemove={onRemoveRule.bind(null, i)}></Rule>)}
-
-			</div>
-			<canvas ref={canvasRef} width="800" height="800"></canvas>
-		</div>);
+		);
 	};
 }

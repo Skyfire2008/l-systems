@@ -4,15 +4,11 @@
 }
 
 .rule .succ {
-	width: 200px;
+	width: 300px;
 }
 
 .rule .prob {
 	width: 40px;
-}
-
-.rule .odds {
-	width: 100px;
 }
 
 .rule {
@@ -20,17 +16,36 @@
 	margin: 2px 0px 0px 0px;
 }
 
-.rule * {
+.rule> {
 	margin: 0px 5px 0px 0px;
 }
 
 input[type="number"] {
 	text-align: right;
+	width: 100px;
 }
 
 .line {
 	display: flex;
 	flex-direction: row;
+}
+
+.line>* {
+	margin: 0px 2px 0px 0px;
+}
+
+.column {
+	display: flex;
+	flex-direction: column;
+	width: fit-content;
+}
+
+.column>* {
+	margin: 0px 0px 2px 0px;
+}
+
+label {
+	min-width: 80px;
 }
 
 input[type="color"] {

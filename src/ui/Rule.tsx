@@ -23,7 +23,7 @@ namespace ui {
 			<input className="pred" value={pred} onChange={onPredChange}></input>
 			<div>&rarr;</div>
 			<input className="succ" value={succ} onChange={(e) => onChange(pred, e.target.value, odds)}></input>
-			<input className="odds" type="number" min="0" value={odds} onChange={(e) => onChange(pred, succ, e.target.valueAsNumber)}></input>
+			<input type="number" min="0" value={odds} onChange={(e) => onChange(pred, succ, e.target.valueAsNumber)}></input>
 			<div className="prob">{Math.floor(prob * 1000) / 10}%</div>
 			<button onClick={onRemove}>Remove</button>
 		</div>);
