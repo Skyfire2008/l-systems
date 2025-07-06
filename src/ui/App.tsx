@@ -16,6 +16,7 @@ namespace ui {
 		const [dist, setDist] = React.useState(1);
 		const [distScale, setDistScale] = React.useState(2);
 		const [lineWidth, setLineWidth] = React.useState(1);
+		const [widthScale, setWidthScale] = React.useState(1);
 		const [colors, setColors] = React.useState([
 			"#000000", "#000000", "#000000", "#000000", "#000000",
 			"#000000", "#000000", "#000000", "#000000", "#000000"]);
@@ -64,7 +65,7 @@ namespace ui {
 		//use effect is not designed for this, but fuck it
 		React.useEffect(() => {
 			redraw();
-		}, [turnAngle, turnScale, dist, distScale, sequence, lineWidth, colors, colorMod]);
+		}, [turnAngle, turnScale, dist, distScale, sequence, lineWidth, widthScale, colors, colorMod]);
 
 		const redraw = () => {
 			const ctx = canvasRef.current.getContext("2d");
@@ -79,6 +80,7 @@ namespace ui {
 					turnScale,
 					distScale,
 					lineWidth,
+					widthScale,
 					colors,
 					colorMod
 				}, ctx);
@@ -93,6 +95,7 @@ namespace ui {
 			setTurnAngle(system.turnAngle);
 			setTurnScale(system.turnScale);
 			setLineWidth(system.lineWidth);
+			setWidthScale(system.widthScale);
 			setColors(system.colors);
 			setColorMod(system.colorMod);
 			_setIterations(0);
@@ -220,7 +223,7 @@ namespace ui {
 
 						<div className="line">
 							<label>Delta Scale:</label>
-							<input step={0.1} type="number" value={turnScale} onChange={(e) => setTurnScale(e.target.valueAsNumber)}></input>
+							<input step={0.05} type="number" value={turnScale} onChange={(e) => setTurnScale(e.target.valueAsNumber)}></input>
 						</div>
 					</div>
 					<div className="line">
@@ -230,12 +233,18 @@ namespace ui {
 						</div>
 						<div className="line">
 							<label>Dist Scale:</label>
-							<input min={0} step={0.1} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
+							<input min={0} step={0.05} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
 						</div>
 					</div>
 					<div className="line">
-						<label>Line Width:</label>
-						<input min={1} step={1} type="number" value={lineWidth} onChange={(e) => setLineWidth(e.target.valueAsNumber)}></input>
+						<div className="line">
+							<label>Line Width:</label>
+							<input min={1} step={1} type="number" value={lineWidth} onChange={(e) => setLineWidth(e.target.valueAsNumber)}></input>
+						</div>
+						<div className="line">
+							<label>Width Scale:</label>
+							<input min={0} step={0.1} type="number" value={widthScale} onChange={(e) => setWidthScale(e.target.valueAsNumber)}></input>
+						</div>
 					</div>
 					<ColorPalette colors={colors} onColorChange={setColors}></ColorPalette>
 					<div className="line">

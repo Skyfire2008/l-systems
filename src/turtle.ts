@@ -17,6 +17,7 @@ namespace lSystem {
 		turnAngle: number;
 		turnScale: number;
 		lineWidth: number;
+		widthScale: number;
 		colors: Array<string>;
 		colorMod: util.HSL;
 	}
@@ -28,6 +29,7 @@ namespace lSystem {
 		private turnAngle: number;
 		private turnScale: number;
 		private lineWidth: number;
+		private widthScale: number;
 
 		private colors: Array<string>;
 		private colorMod: util.HSL;
@@ -47,6 +49,7 @@ namespace lSystem {
 
 		constructor() {
 			this.actions = new Map<string, (ctx: CanvasRenderingContext2D) => void>();
+			this.actions.set("C", this.drawCircle);
 			this.actions.set("F", this.drawLine);
 			this.actions.set("f", this.move);
 			this.actions.set("[", this.push);
@@ -98,27 +101,11 @@ namespace lSystem {
 			this.calibrationActions.set(">", this.multDist);
 			this.calibrationActions.set("<", this.divDist);
 			this.calibrationActions.set("#", () => {
-				this.lineWidth *= this.distScale;
+				this.lineWidth *= this.widthScale;
 			});
 			this.calibrationActions.set("!", () => {
-				this.lineWidth /= this.distScale;
+				this.lineWidth /= this.widthScale;
 			});
-
-			const dummySetColor = (i: number) => {
-				this.color = this.colors[i];
-			};
-			this.calibrationActions.set("0", dummySetColor.bind(this, 0));
-			this.calibrationActions.set("1", dummySetColor.bind(this, 1));
-			this.calibrationActions.set("2", dummySetColor.bind(this, 2));
-			this.calibrationActions.set("3", dummySetColor.bind(this, 3));
-			this.calibrationActions.set("4", dummySetColor.bind(this, 4));
-			this.calibrationActions.set("5", dummySetColor.bind(this, 5));
-			this.calibrationActions.set("6", dummySetColor.bind(this, 6));
-			this.calibrationActions.set("7", dummySetColor.bind(this, 7));
-			this.calibrationActions.set("8", dummySetColor.bind(this, 8));
-			this.calibrationActions.set("9", dummySetColor.bind(this, 9));
-			this.calibrationActions.set("H", () => { });
-			this.calibrationActions.set("h", () => { });
 		}
 
 		/**
@@ -180,6 +167,7 @@ namespace lSystem {
 			this.turnAngle = settings.turnAngle;
 			this.turnScale = settings.turnScale
 			this.lineWidth = settings.lineWidth;
+			this.widthScale = settings.widthScale;
 			this.colors = settings.colors;
 			this.colorMod = settings.colorMod;
 			this.color = settings.colors[0];
@@ -233,11 +221,19 @@ namespace lSystem {
 			//ctx.moveTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
 		}
 
+		private drawCircle(ctx: CanvasRenderingContext2D) {
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.dist, 0, Math.PI * 2);
+			ctx.fillStyle = this.color;
+			ctx.fill();
+		}
+
 		private multLineWidth(ctx: CanvasRenderingContext2D) {
 			ctx.stroke();
 			ctx.beginPath();
 			ctx.moveTo(this.x, this.y);
-			this.lineWidth *= this.distScale;
+			this.lineWidth *= this.widthScale;
 			ctx.lineWidth = this.lineWidth;
 		}
 
@@ -245,7 +241,7 @@ namespace lSystem {
 			ctx.stroke();
 			ctx.beginPath();
 			ctx.moveTo(this.x, this.y);
-			this.lineWidth /= this.distScale;
+			this.lineWidth /= this.widthScale;
 			ctx.lineWidth = this.lineWidth;
 		}
 
@@ -343,6 +339,7 @@ namespace lSystem {
 			ctx.stroke();
 			ctx.beginPath();
 			ctx.lineWidth = this.lineWidth;
+			ctx.strokeStyle = this.color;
 			ctx.moveTo(Math.floor(this.x) + 0.5, Math.floor(this.y) + 0.5);
 		}
 

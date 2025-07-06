@@ -25,6 +25,7 @@ namespace lSystem {
 		turnAngle: number;
 		turnScale?: number;
 		lineWidth?: number;
+		widthScale?: number;
 		colors?: Array<string>;
 		colorMod?: util.HSL;
 	}
@@ -35,6 +36,7 @@ namespace lSystem {
 			distScale: 1,
 			turnScale: 1,
 			lineWidth: 1,
+			widthScale: 1,
 			colors: [
 				"#000000", "#000000", "#000000", "#000000", "#000000",
 				"#000000", "#000000", "#000000", "#000000", "#000000"
