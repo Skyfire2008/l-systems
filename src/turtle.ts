@@ -11,6 +11,15 @@ namespace lSystem {
 		color: string;
 	}
 
+	export interface Bounds {
+		minX: number;
+		maxX: number;
+		minY: number;
+		maxY: number;
+		startX: number;
+		startY: number;
+	}
+
 	export interface TurtleSettings {
 		dist: number;
 		distScale: number;
@@ -120,10 +129,10 @@ namespace lSystem {
 			this.angle = -Math.PI / 2;
 			this.stack = [];
 
-			let maxX = Number.NEGATIVE_INFINITY;
-			let maxY = Number.NEGATIVE_INFINITY;
-			let minX = Number.POSITIVE_INFINITY;
-			let minY = Number.POSITIVE_INFINITY;
+			let maxX = this.x;
+			let maxY = this.y;
+			let minX = this.x;
+			let minY = this.y;
 
 			let maxWidth = 1;
 
@@ -139,6 +148,11 @@ namespace lSystem {
 					minY = Math.min(this.y, minY);
 
 					maxWidth = Math.max(maxWidth, this.lineWidth);
+				} else if (c == "C") { //special case for circle
+					maxX = Math.max(this.x + this.dist, maxX);
+					minX = Math.min(this.x - this.dist, minX);
+					maxY = Math.max(this.y + this.dist, maxY);
+					minY = Math.min(this.y - this.dist, minY);
 				}
 			}
 
@@ -146,10 +160,10 @@ namespace lSystem {
 			const drawingHeight = maxY - minY;
 			//subtract double maxWidth from width and height to give the margin
 			maxWidth = maxWidth < 1 ? 0 : maxWidth;
-			this.scale = 1.0 / Math.max(drawingWidth / (width - 2 * maxWidth), drawingHeight / (height - 2 * maxWidth));
+			this.scale = 1.0 / Math.max(drawingWidth / width, drawingHeight / height);
 
-			this.x = (width / 2 - minX) * this.scale + 1;
-			this.y = (height / 2 - minY) * this.scale + 1;
+			this.x = (width / 2 - minX) * this.scale;
+			this.y = (height / 2 - minY) * this.scale;
 			this.angle = -Math.PI / 2;
 			this.stack = [];
 		}
@@ -222,11 +236,10 @@ namespace lSystem {
 		}
 
 		private drawCircle(ctx: CanvasRenderingContext2D) {
-			ctx.stroke();
-			ctx.beginPath();
-			ctx.arc(this.x, this.y, this.dist, 0, Math.PI * 2);
+			const path = new Path2D();
+			path.arc(this.x, this.y, this.dist * this.scale, 0, Math.PI * 2);
 			ctx.fillStyle = this.color;
-			ctx.fill();
+			ctx.fill(path);
 		}
 
 		private multLineWidth(ctx: CanvasRenderingContext2D) {
