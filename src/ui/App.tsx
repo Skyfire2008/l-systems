@@ -1,15 +1,73 @@
 namespace ui {
 
+	enum ParamName {
+		StartAngle = "startAngle",
+		Dist = "dist",
+		DistScale = "distScale",
+		TurnAngle = "turnAngle",
+		TurnScale = "turnScale",
+		LineWidth = "lineWidth",
+		WidthScale = "widthScale",
+
+		Scale = "scale",
+		StartX = "startX",
+		StartY = "startY",
+		Colors = "colors",
+		ColorMod = "colorMod"
+	};
+
 	export const App: React.FC<{}> = () => {
 
 		const [name, setName] = React.useState("");
 		const [axiom, _setAxiom] = React.useState("");
-		const [sequence, setSequence] = React.useState(axiom);
+		const [sequence, _setSequence] = React.useState(axiom);
+
+		const setSequence = (newSequence: string) => {
+			//redraw
+			const ctx = canvasRef.current.getContext("2d");
+			const settings: lSystem.TurtleSettings = {
+				startX,
+				startY,
+				startAngle: Math.PI * startAngle / 180,
+				scale,
+				dist,
+				distScale,
+				turnAngle: Math.PI * turnAngle / 180,
+				turnScale,
+				lineWidth,
+				widthScale,
+				colors,
+				colorMod
+			};
+			if (useCalibration) {
+				const calibrationData = turtle.current.calibrate(newSequence, ctx.canvas.width, ctx.canvas.height, settings);
+				settings.scale = calibrationData.scale;
+				settings.startX = calibrationData.startX;
+				settings.startY = calibrationData.startY;
+
+				setScale(calibrationData.scale);
+				setStartX(calibrationData.startX);
+				setStartY(calibrationData.startY);
+			}
+			ctx.lineCap = "round";
+			ctx.lineJoin = "round";
+			ctx.fillStyle = "#ffffff";
+			ctx.fillRect(0, 0, 800, 800);
+			turtle.current.draw(newSequence, settings, ctx);
+
+			_setSequence(newSequence);
+		};
 
 		const setAxiom = (newAxiom: string) => {
 			setSequence(newAxiom);
 			_setAxiom(newAxiom);
 		};
+
+		const [startX, setStartX] = React.useState(0);
+		const [startY, setStartY] = React.useState(0);
+		const [scale, setScale] = React.useState(1);
+		const [useCalibration, setUseCalibration] = React.useState(true);
+		const [startAngle, setStartAngle] = React.useState(90);
 
 		const [turnAngle, setTurnAngle] = React.useState(60);
 		const [turnScale, setTurnScale] = React.useState(1);
@@ -61,30 +119,61 @@ namespace ui {
 		const canvasRef = React.useRef<HTMLCanvasElement>();
 		const turtle = React.useRef(new lSystem.Turtle());
 
-		//re-draw if delta, dist, etc. change
-		//use effect is not designed for this, but fuck it
-		React.useEffect(() => {
-			redraw();
-		}, [turnAngle, turnScale, dist, distScale, sequence, lineWidth, widthScale, colors, colorMod]);
-
-		const redraw = () => {
+		const onParamChange = (paramName: ParamName, paramValue: number | util.HSL | Array<string>) => {
 			const ctx = canvasRef.current.getContext("2d");
+			const settings: lSystem.TurtleSettings = {
+				startX,
+				startY,
+				startAngle: Math.PI * startAngle / 180,
+				scale,
+				dist,
+				distScale,
+				turnAngle: Math.PI * turnAngle / 180,
+				turnScale,
+				lineWidth,
+				widthScale,
+				colors,
+				colorMod
+			};
+
+			//set changed param since react state is not updated yet
+			if (paramName == ParamName.StartAngle || paramName == ParamName.TurnAngle) {
+				settings[paramName] = Math.PI * (paramValue as number) / 180;
+			} else {
+				settings[paramName] = (paramValue as any);
+			}
+
+			if (useCalibration) {
+				switch (paramName) {
+					case ParamName.StartAngle:
+					case ParamName.Dist:
+					case ParamName.DistScale:
+					case ParamName.TurnAngle:
+					case ParamName.TurnScale:
+					case ParamName.LineWidth:
+					case ParamName.WidthScale:
+
+						const calibrationData = turtle.current.calibrate(sequence, ctx.canvas.width, ctx.canvas.height, settings);
+						settings.scale = calibrationData.scale;
+						settings.startX = calibrationData.startX;
+						settings.startY = calibrationData.startY;
+
+						setScale(calibrationData.scale);
+						setStartX(calibrationData.startX);
+						setStartY(calibrationData.startY);
+						break;
+					default:
+				}
+			}
+
 			ctx.lineCap = "round";
 			ctx.lineJoin = "round";
 			ctx.fillStyle = "#ffffff";
 			ctx.fillRect(0, 0, 800, 800);
-			turtle.current.draw(sequence,
-				{
-					dist,
-					turnAngle: Math.PI * turnAngle / 180,
-					turnScale,
-					distScale,
-					lineWidth,
-					widthScale,
-					colors,
-					colorMod
-				}, ctx);
+			turtle.current.draw(sequence, settings, ctx);
 		};
+
+		//[ sequence]);
 
 		const onSelectFile = (file: ui.File) => {
 			const system: lSystem.LSystem = lSystem.loadLSystem(file.contents);
@@ -217,46 +306,140 @@ namespace ui {
 					</div>
 					<div className="line">
 						<div className="line">
+							<label>Auto-scale:</label>
+							<input type="checkbox" checked={useCalibration} onChange={(e) => setUseCalibration(e.target.checked)}></input>
+						</div>
+
+						<div className="line">
+							<label>Scale:</label>
+							<input type="number" min={0} step={0.05} disabled={useCalibration} value={scale} onChange={
+								(e) => {
+									onParamChange(ParamName.Scale, e.target.valueAsNumber);
+									setScale(e.target.valueAsNumber);
+								}
+							}></input>
+						</div>
+					</div>
+					<div className="line">
+						<div className="line">
+							<label>Start X:</label>
+							<input type="number" step={1} disabled={useCalibration} value={startX} onChange={
+								(e) => {
+									onParamChange(ParamName.StartX, e.target.valueAsNumber);
+									setStartX(e.target.valueAsNumber);
+								}
+							}></input>
+						</div>
+
+						<div className="line">
+							<label>Start Y:</label>
+							<input type="number" step={1} disabled={useCalibration} value={startY} onChange={
+								(e) => {
+									onParamChange(ParamName.StartY, e.target.valueAsNumber);
+									setStartY(e.target.valueAsNumber);
+								}
+							}></input>
+						</div>
+
+						<div className="line">
+							<label>Start Angle:</label>
+							<input type="number" step={1} value={startAngle} onChange={
+								(e) => {
+									onParamChange(ParamName.StartAngle, e.target.valueAsNumber);
+									setStartAngle(e.target.valueAsNumber);
+								}
+							}></input>
+						</div>
+					</div>
+					<div className="line">
+						<div className="line">
 							<label>Delta:</label>
-							<input type="number" value={turnAngle} onChange={(e) => setTurnAngle(e.target.valueAsNumber)}></input>
+							<input type="number" value={turnAngle} onChange={
+								(e) => {
+									onParamChange(ParamName.TurnAngle, e.target.valueAsNumber);
+									setTurnAngle(e.target.valueAsNumber);
+								}
+							}></input>
 						</div>
 
 						<div className="line">
 							<label>Delta Scale:</label>
-							<input step={0.05} type="number" value={turnScale} onChange={(e) => setTurnScale(e.target.valueAsNumber)}></input>
+							<input step={0.05} type="number" value={turnScale} onChange={
+								(e) => {
+									onParamChange(ParamName.TurnScale, e.target.valueAsNumber);
+									setTurnScale(e.target.valueAsNumber);
+								}
+							}></input>
 						</div>
 					</div>
 					<div className="line">
 						<div className="line">
 							<label>Dist:</label>
-							<input min={0} type="number" value={dist} onChange={(e) => setDist(e.target.valueAsNumber)}></input>
+							<input min={0} type="number" value={dist} onChange={
+								(e) => {
+									onParamChange(ParamName.Dist, e.target.valueAsNumber);
+									setDist(e.target.valueAsNumber);
+								}
+							}></input>
 						</div>
 						<div className="line">
 							<label>Dist Scale:</label>
-							<input min={0} step={0.05} type="number" value={distScale} onChange={(e) => setDistScale(e.target.valueAsNumber)}></input>
+							<input min={0} step={0.05} type="number" value={distScale} onChange={
+								(e) => {
+									onParamChange(ParamName.DistScale, e.target.valueAsNumber);
+									setDistScale(e.target.valueAsNumber);
+								}
+							}></input>
 						</div>
 					</div>
 					<div className="line">
 						<div className="line">
 							<label>Line Width:</label>
-							<input min={1} step={1} type="number" value={lineWidth} onChange={(e) => setLineWidth(e.target.valueAsNumber)}></input>
+							<input min={1} step={1} type="number" value={lineWidth} onChange={
+								(e) => {
+									onParamChange(ParamName.LineWidth, e.target.valueAsNumber);
+									setLineWidth(e.target.valueAsNumber);
+								}
+							}></input>
 						</div>
 						<div className="line">
 							<label>Width Scale:</label>
-							<input min={0} step={0.1} type="number" value={widthScale} onChange={(e) => setWidthScale(e.target.valueAsNumber)}></input>
+							<input min={0} step={0.1} type="number" value={widthScale} onChange={
+								(e) => {
+									onParamChange(ParamName.WidthScale, e.target.valueAsNumber);
+									setWidthScale(e.target.valueAsNumber);
+								}
+							}></input>
 						</div>
 					</div>
-					<ColorPalette colors={colors} onColorChange={setColors}></ColorPalette>
+					<ColorPalette colors={colors} onColorChange={
+						(colors) => {
+							onParamChange(ParamName.Colors, colors);
+							setColors(colors);
+						}
+					}></ColorPalette>
 					<div className="line">
 						Color Modifier:
 						<input type="number" min="0" max="360" value={colorMod.h} onChange={
-							(e) => setColorMod(Object.assign({}, colorMod, { h: e.target.valueAsNumber }))
+							(e) => {
+								const newColorMod: util.HSL = Object.assign({}, colorMod, { h: e.target.valueAsNumber });
+								onParamChange(ParamName.ColorMod, newColorMod);
+								setColorMod(newColorMod);
+							}
 						}></input>
 						<input type="number" min="0" step="0.01" value={colorMod.s} onChange={
-							(e) => setColorMod(Object.assign({}, colorMod, { s: e.target.valueAsNumber }))
+							(e) => {
+								const newColorMod: util.HSL = Object.assign({}, colorMod, { s: e.target.valueAsNumber });
+								onParamChange(ParamName.ColorMod, newColorMod);
+								setColorMod(newColorMod);
+							}
 						}></input>
 						<input type="number" min="0" step="0.01" value={colorMod.l} onChange={
-							(e) => setColorMod(Object.assign({}, colorMod, { l: e.target.valueAsNumber }))
+							(e) => {
+								const newColorMod: util.HSL = Object.assign({}, colorMod, { l: e.target.valueAsNumber });
+								onParamChange(ParamName.ColorMod, newColorMod);
+								setColorMod(newColorMod);
+							}
 						}></input>
 					</div>
 					<div className="line">

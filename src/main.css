@@ -45,7 +45,7 @@ input[type="number"] {
 }
 
 label {
-	min-width: 80px;
+	min-width: 90px;
 }
 
 input[type="color"] {

@@ -11,28 +11,32 @@ namespace lSystem {
 		color: string;
 	}
 
-	export interface Bounds {
-		minX: number;
-		maxX: number;
-		minY: number;
-		maxY: number;
+	export interface CalibrationData {
+		scale: number;
 		startX: number;
 		startY: number;
 	}
 
-	export interface TurtleSettings {
+	export interface CalibrationSettings {
+		startAngle: number;
 		dist: number;
 		distScale: number;
 		turnAngle: number;
 		turnScale: number;
 		lineWidth: number;
 		widthScale: number;
+	}
+
+	export interface TurtleSettings extends CalibrationSettings {
+		scale: number;
+		startX: number;
+		startY: number;
+
 		colors: Array<string>;
 		colorMod: util.HSL;
 	}
 
 	export class Turtle {
-
 		private dist: number;
 		private distScale: number;
 		private turnAngle: number;
@@ -44,7 +48,7 @@ namespace lSystem {
 		private colorMod: util.HSL;
 		private color: string;
 
-		private scale = 1;
+		private scale: number;
 
 		private x = 0;
 		private y = 0;
@@ -117,16 +121,39 @@ namespace lSystem {
 			});
 		}
 
+		public loadCalibrationSettings(settings: CalibrationSettings) {
+			this.angle = settings.startAngle;
+			this.dist = settings.dist;
+			this.distScale = settings.distScale;
+			this.turnAngle = settings.turnAngle;
+			this.turnScale = settings.turnScale
+			this.lineWidth = settings.lineWidth;
+			this.widthScale = settings.widthScale;
+		}
+
+		public loadTurtleSettings(settings: TurtleSettings) {
+			this.loadCalibrationSettings(settings);
+			this.x = settings.startX;
+			this.y = settings.startY;
+			this.scale = settings.scale;
+			this.colors = settings.colors;
+			this.colorMod = settings.colorMod;
+			this.color = settings.colors[0];
+		}
+
 		/**
 		 * Calculates the scaling and starting position of the turtle to fit the drawing into the canvas
 		 * @param seq sequence of L-system characters to draw
 		 * @param width canvas width
 		 * @param height canvas height
+		 * @param settings initial turtle settings(without calibration)
+		 * @returns calibration data
 		 */
-		public calibrate(seq: string, width: number, height: number) {
+		public calibrate(seq: string, width: number, height: number, settings: CalibrationSettings): CalibrationData {
+			this.loadCalibrationSettings(settings);
 			this.x = width / 2;
 			this.y = height / 2;
-			this.angle = -Math.PI / 2;
+			this.scale = 1;
 			this.stack = [];
 
 			let maxX = this.x;
@@ -160,12 +187,15 @@ namespace lSystem {
 			const drawingHeight = maxY - minY;
 			//subtract double maxWidth from width and height to give the margin
 			maxWidth = maxWidth < 1 ? 0 : maxWidth;
-			this.scale = 1.0 / Math.max(drawingWidth / width, drawingHeight / height);
+			const resultScale = 1.0 / Math.max(drawingWidth / width, drawingHeight / height);
 
-			this.x = (width / 2 - minX) * this.scale;
-			this.y = (height / 2 - minY) * this.scale;
-			this.angle = -Math.PI / 2;
 			this.stack = [];
+
+			return {
+				startX: (width / 2 - minX) * resultScale,
+				startY: (height / 2 - minY) * resultScale,
+				scale: resultScale
+			};
 		}
 
 		/**
@@ -176,23 +206,7 @@ namespace lSystem {
 		 */
 		public draw(seq: string, settings: TurtleSettings, ctx: CanvasRenderingContext2D) {
 			//set the settings
-			this.dist = settings.dist;
-			this.distScale = settings.distScale;
-			this.turnAngle = settings.turnAngle;
-			this.turnScale = settings.turnScale
-			this.lineWidth = settings.lineWidth;
-			this.widthScale = settings.widthScale;
-			this.colors = settings.colors;
-			this.colorMod = settings.colorMod;
-			this.color = settings.colors[0];
-
-			//first calibrate...
-			this.calibrate(seq, ctx.canvas.width, ctx.canvas.width);
-
-			//restore state
-			this.dist = settings.dist;
-			this.turnAngle = settings.turnAngle;
-			this.lineWidth = settings.lineWidth;
+			this.loadTurtleSettings(settings);
 			ctx.lineWidth = this.lineWidth;
 			ctx.strokeStyle = this.color;
 
