@@ -297,22 +297,22 @@ namespace ui {
 
 					<textarea readOnly={true} value={sequence}></textarea>
 					<div className="line">
-						<label>Name:</label>
-						<input value={name} onChange={(e) => setName(e.target.value)}></input>
+						<TooltipLabel for="nameInput" text="Name of this l-system">Name:</TooltipLabel>
+						<input id="nameInput" value={name} onChange={(e) => setName(e.target.value)}></input>
 					</div>
 					<div className="line">
-						<label>Axiom:</label>
-						<input value={axiom} onChange={(e) => setAxiom(e.target.value)}></input>
+						<TooltipLabel for="axiomInput" text="Initial sequence value">Axiom:</TooltipLabel>
+						<input id="axiomInput" value={axiom} onChange={(e) => setAxiom(e.target.value)}></input>
 					</div>
 					<div className="line">
 						<div className="line">
-							<label>Auto-scale:</label>
-							<input type="checkbox" checked={useCalibration} onChange={(e) => setUseCalibration(e.target.checked)}></input>
+							<TooltipLabel for="calibrateCheckbox" text="Enable to fit drawing to canvas">Auto-scale:</TooltipLabel>
+							<input id="calibrateCheckbox" type="checkbox" checked={useCalibration} onChange={(e) => setUseCalibration(e.target.checked)}></input>
 						</div>
 
 						<div className="line">
-							<label>Scale:</label>
-							<input type="number" min={0} step={0.05} disabled={useCalibration} value={scale} onChange={
+							<TooltipLabel for="scaleInput" text="Drawing scale">Scale:</TooltipLabel>
+							<input id="scaleInput" type="number" min={0} step={0.05} disabled={useCalibration} value={scale} onChange={
 								(e) => {
 									onParamChange(ParamName.Scale, e.target.valueAsNumber);
 									setScale(e.target.valueAsNumber);
@@ -322,8 +322,8 @@ namespace ui {
 					</div>
 					<div className="line">
 						<div className="line">
-							<label>Start X:</label>
-							<input type="number" step={1} disabled={useCalibration} value={startX} onChange={
+							<TooltipLabel for="startXInput" text="Turtle initial x coordinate">Start X:</TooltipLabel>
+							<input id="startXInput" type="number" step={1} disabled={useCalibration} value={startX} onChange={
 								(e) => {
 									onParamChange(ParamName.StartX, e.target.valueAsNumber);
 									setStartX(e.target.valueAsNumber);
@@ -332,8 +332,8 @@ namespace ui {
 						</div>
 
 						<div className="line">
-							<label>Start Y:</label>
-							<input type="number" step={1} disabled={useCalibration} value={startY} onChange={
+							<TooltipLabel for="startYInput" text="Turtle initial y coordinate">Start Y:</TooltipLabel>
+							<input id="startYInput" type="number" step={1} disabled={useCalibration} value={startY} onChange={
 								(e) => {
 									onParamChange(ParamName.StartY, e.target.valueAsNumber);
 									setStartY(e.target.valueAsNumber);
@@ -342,8 +342,8 @@ namespace ui {
 						</div>
 
 						<div className="line">
-							<label>Start Angle:</label>
-							<input type="number" step={1} value={startAngle} onChange={
+							<TooltipLabel for="startAngleInput" text="Turtle initial angle(in degrees)">Start Angle:</TooltipLabel>
+							<input id="startAngleInput" type="number" step={1} value={startAngle} onChange={
 								(e) => {
 									onParamChange(ParamName.StartAngle, e.target.valueAsNumber);
 									setStartAngle(e.target.valueAsNumber);
@@ -353,8 +353,8 @@ namespace ui {
 					</div>
 					<div className="line">
 						<div className="line">
-							<label>Delta:</label>
-							<input type="number" value={turnAngle} onChange={
+							<TooltipLabel for="deltaInput" text="Turtle turn angle(in degrees)">Delta:</TooltipLabel>
+							<input id="deltaInput" type="number" value={turnAngle} onChange={
 								(e) => {
 									onParamChange(ParamName.TurnAngle, e.target.valueAsNumber);
 									setTurnAngle(e.target.valueAsNumber);
@@ -363,8 +363,8 @@ namespace ui {
 						</div>
 
 						<div className="line">
-							<label>Delta Scale:</label>
-							<input step={0.05} type="number" value={turnScale} onChange={
+							<TooltipLabel for="turnScaleInput" text="Multiplier for turtle turn angle">Delta Scale:</TooltipLabel>
+							<input id="turnScaleInput" step={0.05} type="number" value={turnScale} onChange={
 								(e) => {
 									onParamChange(ParamName.TurnScale, e.target.valueAsNumber);
 									setTurnScale(e.target.valueAsNumber);
@@ -374,8 +374,8 @@ namespace ui {
 					</div>
 					<div className="line">
 						<div className="line">
-							<label>Dist:</label>
-							<input min={0} type="number" value={dist} onChange={
+							<TooltipLabel for="distInput" text="Turtle move distance(in pixels)">Dist:</TooltipLabel>
+							<input id="distInput" min={0} type="number" value={dist} onChange={
 								(e) => {
 									onParamChange(ParamName.Dist, e.target.valueAsNumber);
 									setDist(e.target.valueAsNumber);
@@ -383,8 +383,8 @@ namespace ui {
 							}></input>
 						</div>
 						<div className="line">
-							<label>Dist Scale:</label>
-							<input min={0} step={0.05} type="number" value={distScale} onChange={
+							<TooltipLabel for="distScaleInput" text="Multiplier for turtle move distance">Dist Scale:</TooltipLabel>
+							<input id="distScaleInput" min={0} step={0.05} type="number" value={distScale} onChange={
 								(e) => {
 									onParamChange(ParamName.DistScale, e.target.valueAsNumber);
 									setDistScale(e.target.valueAsNumber);
@@ -394,8 +394,8 @@ namespace ui {
 					</div>
 					<div className="line">
 						<div className="line">
-							<label>Line Width:</label>
-							<input min={1} step={1} type="number" value={lineWidth} onChange={
+							<TooltipLabel for="lineWidthInput" text="Width of line drawn by turtle">Line Width:</TooltipLabel>
+							<input id="lineWidthInput" min={1} step={1} type="number" value={lineWidth} onChange={
 								(e) => {
 									onParamChange(ParamName.LineWidth, e.target.valueAsNumber);
 									setLineWidth(e.target.valueAsNumber);
@@ -403,8 +403,8 @@ namespace ui {
 							}></input>
 						</div>
 						<div className="line">
-							<label>Width Scale:</label>
-							<input min={0} step={0.1} type="number" value={widthScale} onChange={
+							<TooltipLabel for="widthScaleInput" text="Line width multiplier">Width Scale:</TooltipLabel>
+							<input id="widthScaleInput" min={0} step={0.1} type="number" value={widthScale} onChange={
 								(e) => {
 									onParamChange(ParamName.WidthScale, e.target.valueAsNumber);
 									setWidthScale(e.target.valueAsNumber);
@@ -419,7 +419,7 @@ namespace ui {
 						}
 					}></ColorPalette>
 					<div className="line">
-						Color Modifier:
+						<TooltipLabel text="Color modifier in HSL format. When color is modified, hue is added/subtracted, while saturation and lightness are multiplied">Color Modifier:</TooltipLabel>
 						<input type="number" min="0" max="360" value={colorMod.h} onChange={
 							(e) => {
 								const newColorMod: util.HSL = Object.assign({}, colorMod, { h: e.target.valueAsNumber });
@@ -443,17 +443,14 @@ namespace ui {
 						}></input>
 					</div>
 					<div className="line">
-						<div>
-							<label>Iterations:</label>
-							<input min={0} type="number" value={iterations} onChange={(e) => setIterations(e.target.valueAsNumber)}></input>
-						</div>
+						<TooltipLabel for="iterInput" text="Number of iterations the rules are applied to the initial sequence. Changing this value will automatically redraw the image.">Iterations:</TooltipLabel>
+						<input id="iterInput" min={0} type="number" value={iterations} onChange={(e) => setIterations(e.target.valueAsNumber)}></input>
 						<button onClick={redo}>Redo</button>
 					</div>
-					<div>
+					<div className="line">
 						<button onClick={onAddRule}>Add Rule</button>
-						Rules:
+						<TooltipLabel text="Rules used to modify the sequence">Rules:</TooltipLabel>
 						{ruleList.map((rule, i) => <Rule {...rule} key={i} onChange={onChangeRule.bind(null, i)} onRemove={onRemoveRule.bind(null, i)}></Rule>)}
-
 					</div>
 				</div>
 
